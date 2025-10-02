@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do & Product Filter App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    h2 { color: #333; }
+    .tabs { margin-bottom: 20px; }
+    .tabs button { margin-right: 10px; padding: 10px; border: none; background: #007BFF; color: white; cursor: pointer; border-radius: 5px; }
+    .tabs button.active { background: #0056b3; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* To-Do List Styles */
+    #todoApp input { padding: 8px; width: 70%; }
+    #todoApp button { padding: 8px 12px; margin-left: 10px; }
+    #todoList { margin-top: 15px; list-style: none; padding: 0; }
+    #todoList li { padding: 8px; background: #fff; margin: 5px 0; display: flex; justify-content: space-between; border-radius: 5px; }
+    #todoList li span { flex-grow: 1; }
+
+    /* Product Page Styles */
+    #products { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap: 15px; margin-top: 20px; }
+    .product { background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .controls { margin-bottom: 20px; }
+    select { margin-right: 10px; padding: 5px; }
+  </style>
+</head>
+<body>
+
+  <h1>Multi-App: To-Do & Product Filter</h1>
+  <div class="tabs">
+    <button id="todoTab" class="active">To-Do List</button>
+    <button id="productTab">Product Filter</button>
+  </div>
+
+  <!-- To-Do App -->
+  <div id="todoApp" class="tab-content active">
+    <h2>To-Do List (with LocalStorage)</h2>
+    <input type="text" id="taskInput" placeholder="Enter a task...">
+    <button onclick="addTask()">Add</button>
+    <ul id="todoList"></ul>
+  </div>
+
+  <!-- Product Page -->
+  <div id="productApp" class="tab-content">
+    <h2>Product Page (Filter & Sort)</h2>
+    <div class="controls">
+      <label>Category:</label>
+      <select id="categoryFilter" onchange="renderProducts()">
+        <option value="all">All</option>
+        <option value="electronics">Electronics</option>
+        <option value="clothing">Clothing</option>
+        <option value="books">Books</option>
+      </select>
+
+      <label>Sort by:</label>
+      <select id="sortFilter" onchange="renderProducts()">
+        <option value="default">Default</option>
+        <option value="priceLow">Price: Low to High</option>
+        <option value="priceHigh">Price: High to Low</option>
+        <option value="ratingHigh">Rating: High to Low</option>
+      </select>
+    </div>
+    <div id="products"></div>
+  </div>
+
+  <script>
+    /* ---------------- TO-DO APP ---------------- */
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    const todoList = document.getElementById("todoList");
+
+    function renderTasks() {
+      todoList.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${task}</span>
+          <button onclick="deleteTask(${index})">Delete</button>`;
+        todoList.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const task = input.value.trim();
+      if (task) {
+        tasks.push(task);
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        input.value = "";
+        renderTasks();
+      }
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    renderTasks();
+
+    /* ---------------- PRODUCT APP ---------------- */
+    const products = [
+      { name: "Smartphone", category: "electronics", price: 500, rating: 4.5 },
+      { name: "Laptop", category: "electronics", price: 1200, rating: 4.8 },
+      { name: "T-Shirt", category: "clothing", price: 20, rating: 4.0 },
+      { name: "Jeans", category: "clothing", price: 40, rating: 4.2 },
+      { name: "Novel Book", category: "books", price: 15, rating: 4.7 },
+      { name: "Headphones", category: "electronics", price: 100, rating: 4.3 }
+    ];
+
+    function renderProducts() {
+      const container = document.getElementById("products");
+      const category = document.getElementById("categoryFilter").value;
+      const sortBy = document.getElementById("sortFilter").value;
+
+      let filtered = products.filter(p => category === "all" || p.category === category);
+
+      if (sortBy === "priceLow") filtered.sort((a,b)=>a.price-b.price);
+      if (sortBy === "priceHigh") filtered.sort((a,b)=>b.price-a.price);
+      if (sortBy === "ratingHigh") filtered.sort((a,b)=>b.rating-a.rating);
+
+      container.innerHTML = "";
+      filtered.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "product";
+        div.innerHTML = `<h3>${p.name}</h3>
+          <p>Category: ${p.category}</p>
+          <p>Price: $${p.price}</p>
+          <p>Rating: ⭐${p.rating}</p>`;
+        container.appendChild(div);
+      });
+    }
+
+    renderProducts();
+
+    /* ---------------- TAB SWITCH ---------------- */
+    const todoTab = document.getElementById("todoTab");
+    const productTab = document.getElementById("productTab");
+    const todoApp = document.getElementById("todoApp");
+    const productApp = document.getElementById("productApp");
+
+    todoTab.onclick = () => {
+      todoApp.classList.add("active");
+      productApp.classList.remove("active");
+      todoTab.classList.add("active");
+      productTab.classList.remove("active");
+    };
+    productTab.onclick = () => {
+      productApp.classList.add("active");
+      todoApp.classList.remove("active");
+      productTab.classList.add("active");
+      todoTab.classList.remove("active");
+    };
+  </script>
+</body>
+</html>
